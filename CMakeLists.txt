@@ -1,4 +1,6 @@
-cmake_minimum_required (VERSION 3.15)
+cmake_minimum_required (VERSION 3.3)
+cmake_policy(SET CMP0057 NEW)
+
 
 set(CMAKE_SUPPRESS_REGENERATION true)
 set(CMAKE_CXX_STANDARD 			17)
@@ -51,7 +53,8 @@ include_directories(
 ) 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY 	${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
-link_directories(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
+#link_directories(${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/)
+link_directories(${WATTYDIR}/bin/${CMAKE_BUILD_TYPE})
 link_libraries(${LIBNAME})
 link_libraries($<TARGET_OBJECTS:Resources>)
 

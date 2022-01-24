@@ -17,8 +17,41 @@ Ship::Ship()
 	thrustFire->getAnimator()->play("Fire");
 
 	transform->addChild(thrustFire->transform);
+	fireRate_INV = 1.0f / fireRate;
+	nextFireTime = Timer::elapsed() + fireRate_INV;
 }
 
 Ship::~Ship()
 {
 }
+
+void Ship::update(){
+	Util::checkAreaBounds(this);
+	limitVelocity();
+	GameObject::update();
+
+}
+
+void Ship::limitVelocity() {
+	b2Vec2 vel = getPhysicsBody2D()->getBody()->GetLinearVelocity();
+	float speed = vel.Normalize();//normalizes vector and returns length
+	if (speed > maxVelocity)
+		getPhysicsBody2D()->getBody()->SetLinearVelocity(maxVelocity * vel);
+}
+
+
+void Ship::fire(){
+	if (nextFireTime < Timer::elapsed()) {
+		nextFireTime = Timer::elapsed() + fireRate_INV;
+		Projectile* p = Instantiate::Create<Projectile>(transform->getPosition() + glm::vec2(0, .5f), {.3,.3},"Main Layer");
+		glm::vec3 dir = {0,1,0};
+		glm::quat q = glm::quat(glm::vec3(0,0,transform->getRotation()));
+		dir = q * dir;
+		p->init(dir, 80.0f);
+		p->getPhysicsBody2D()->getBody()->SetTransform(b2Vec2(transform->getPosition().x, transform->getPosition().y) + b2Vec2(dir.x*.5f, dir.y*.5f),transform->getRotation());
+	}
+}
+
+
+
+
