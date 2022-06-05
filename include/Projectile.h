@@ -1,13 +1,13 @@
 #pragma once
 #include <SpaceUtil.h>
-#include <Watty/gameobjects/Instantiate.h>
+#include <Watty/gameobjects/GameObject.h>
 #include <Watty/graphics/sprite.h>
 
 #include <glm.hpp>
 #include <limits>
 #include <imgui.h>
 
-using namespace letc;
+using namespace watty;
 using namespace graphics;
 using namespace physics;
 

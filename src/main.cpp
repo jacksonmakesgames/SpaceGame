@@ -1,5 +1,6 @@
 
 #include <Watty.h>
+#include <audio/audiomanager.h>
 //#include <Ship.h>
 #include <Player.h>
 #include <Projectile.h>
@@ -8,21 +9,24 @@
 #include <math.h>
 #include <cmath>
 
-
-#define BACKGROUNDTEXTUREPATH "textures/Background.png"
-#define VERTPATH "shaders/basic.vert"
-#define FRAGLITPATH "shaders/basic_lit.frag"
-#define FRAGUNLITPATH "shaders/basic_unlit.frag"
+#define BACKGROUND_TEXTURE_PATH "textures/Background.png"
+#define VERT_PATH "shaders/basic.vert"
+#define FRAG_LIT_PATH "shaders/basic_lit.frag"
+#define FRAG_UNLIT_PATH "shaders/basic_unlit.frag"
+#define STARS_VERT_PATH "shaders/stars.vert"
+#define STARS_FRAG_PATH "shaders/stars.frag"
+#define MUSIC_PATH "sounds/sci_fi.ogg"
 
 #include <random>
 
-using namespace letc;
+using namespace watty;
 using namespace graphics;
 using namespace math;
 using namespace physics;
+using namespace audio;
 
 
-namespace letc {
+namespace watty {
 	namespace physics {
 		DebugPhysics* PhysicsWorld2D::debugDraw = new DebugPhysics();
 		b2World* PhysicsWorld2D::box2DWorld = new b2World(b2Vec2(0.0f, 0.0f));
@@ -31,12 +35,10 @@ namespace letc {
 }
 
 
-class SpaceGameApplication : public LETC
+class SpaceGameApplication : public WattyEngine
 {
 	private:
 		Player* player;
-		Camera* sceneCamera;
-
 		glm::vec2 vGalaxyOffset = { 0,0 };
 		bool bStarSelected = false;
 		uint32_t nSelectedStarSeed1 = 0;
@@ -50,31 +52,45 @@ class SpaceGameApplication : public LETC
 
 		virtual void init() override
 		{
-			RawResources::Init();
-			glm::vec2 screenSize(1600,900);
+			RawResources::Init(); // TODO 
 
+			glm::vec2 screenSize(1600,900);
 			window->setTitle("Space");
 			window->setSize(screenSize);
 			window->setVSync(true);
 
-			glClearColor(0.001f, 0.001f, 0.04f, 1);
+			float arenaSize = 30.0f;
 
-			Layer* backgroundLayer = new Layer("Background Layer");
+			new graphics::GridLayer(*sceneCamera, *window);
+
+			sceneCamera->setClearColor(WattyColor(0.001f, 0.001f, 0.04f, 1));
+
+			Shader* starShader = new Shader(STARS_VERT_PATH, STARS_FRAG_PATH);
+			BatchRenderer2D* starRenderer = new BatchRenderer2D(starShader);
+			starRenderer->init(); // TODO I hate this
+
+			Layer* backgroundLayer = new Layer("Background Layer", starRenderer);
 			Layer* mainLayer = new Layer("Main Layer");
+
+			Camera* backgroundCamera = new Camera(new std::vector<Layer*>{backgroundLayer}, glm::vec3(0.0f,0.0f,0.0f), arenaSize, 20.0f, CameraMode::orthographic, WattyColor(0.001f, 0.001f, 0.04f, 1));
+			Camera* mainCamera = new Camera(new std::vector<Layer*>{mainLayer}, glm::vec3(0.0f,0.0f,0.0f), arenaSize, 20.0f, CameraMode::orthographic, WattyColor(0.001f, 0.001f, 0.04f, 1));
 			
-			GameObject* background = new GameObject(glm::vec2(0.0f), glm::vec2(100,100), new Sprite(new Texture(BACKGROUNDTEXTUREPATH)));
+			GameObject* background = new GameObject(glm::vec2(0.0f), glm::vec2(arenaSize,arenaSize), new Sprite(new Texture(BACKGROUND_TEXTURE_PATH)));
 			backgroundLayer->add(background);
 			
 			player = new Player();
 			mainLayer->add(player);
 
-			sceneCamera = new Camera(&Layer::allLayers, { player->transform->getPosition().x,player->transform->getPosition().y,0 }, glm::vec2(32, 18), 20, CameraMode::orthographic);
+			// Sound
+			AudioManager::addClip("main", MUSIC_PATH);
+			AudioManager::getClip("main")->play(true);
+			
 		}
 
 		void update() override {
 			PhysicsWorld2D::step(Timer::delta);
-			LETC::update();
-			//moveCamera();
+			WattyEngine::update();
+			moveCamera();
 		}
 
 
@@ -86,14 +102,12 @@ class SpaceGameApplication : public LETC
 		}
 
 		void render() override {
-			LETC::render();
+			WattyEngine::render();
 		}
 
 		void tick() override {
-			LETC::tick();
+			WattyEngine::tick();
 		}
-
-
 
 		void moveCamera() {
 			glm::vec3 difference = glm::vec3(
@@ -107,8 +121,8 @@ class SpaceGameApplication : public LETC
 				pow(difference.z, 2.0f));
 
 	
-			sceneCamera->position.x = lerp(sceneCamera->position.x, player->transform->getPosition().x, Timer::delta * distance*distance);
-			sceneCamera->position.y = lerp(sceneCamera->position.y, player->transform->getPosition().y, Timer::delta * distance*distance);
+			sceneCamera->position.x = lerp(sceneCamera->position.x, player->transform->getPosition().x, Timer::delta * distance * distance);
+			sceneCamera->position.y = lerp(sceneCamera->position.y, player->transform->getPosition().y, Timer::delta * distance * distance);
 		}
 
 

@@ -15,7 +15,7 @@
 #define SHADER_COLOR_INDEX		3
 
 
-using namespace letc;
+using namespace watty;
 using namespace graphics;
 
 class SpaceRenderer : public Renderer2D

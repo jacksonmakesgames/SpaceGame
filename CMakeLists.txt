@@ -6,12 +6,16 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 set(CMAKE_CXX_STANDARD 			17)
 set(CMAKE_CXX_EXTENSIONS 		OFF)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+message("Watty install directory: <$ENV{WATTYDIR}>")
+if(NOT DEFINED ENV{WATTYDIR})
+	message(FATAL_ERROR "Please define WATTYDIR as the directory where Watty is installed")
+endif()
 
-set(ROOT 				${CMAKE_SOURCE_DIR}/../../../Watty)
+set(WATTYDIR $ENV{WATTYDIR})
+
 set(WATTYVERSION 				0.31.0)
 set(CORE 				Watty-Core)
 set(LIBNAME 			Watty_v${WATTYVERSION})
-set(WATTYDIR 			${ROOT})
 set(COREDIR 			${WATTYDIR}/${CORE})
 
 set(CMAKE_CONFIGURATION_TYPES 		Debug Release Web)
@@ -20,11 +24,23 @@ add_compile_options("$<$<CONFIG:DEBUG>:-DDEBUG>")
 add_compile_definitions(FT2_BUILD_LIBRARY)
 add_compile_definitions(GL_WITH_GLAD) # for freetype
 
+set_property(
+		GLOBAL
+        APPEND
+        PROPERTY ADDITIONAL_CLEAN_FILES "${CMAKE_CURRENT_SOURCE_DIR}/res/*_resource_cache.txt"
+)
 
-include(${ROOT}/tools/functions.cmake)
+if(${REBUILD_RES})
+	file(REMOVE(
+			"${CMAKE_CURRENT_SOURCE_DIR}/res/RawResources_resource_cache.txt"
+			"${CMAKE_CURRENT_SOURCE_DIR}/res/res.cpp"
+			"${CMAKE_CURRENT_SOURCE_DIR}/res/res.h"
+	))
+endif()
+
+include(${WATTYDIR}/tools/functions.cmake)
 create_resources("${CMAKE_CURRENT_SOURCE_DIR}/res" OFF)
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/res")
-
 
 project(Resources)
 	file(GLOB_RECURSE RES_INPUTS 		"*/res.cpp")
@@ -33,6 +49,7 @@ project(Resources)
 		${RES_HEADER}
 		${RES_INPUTS}
 	)
+
 
 
 include_directories(
@@ -44,7 +61,7 @@ include_directories(
 	${WATTYDIR}/dependencies/glfw/include
 	${WATTYDIR}/dependencies/freetype/include
 	${WATTYDIR}/dependencies/freetype-gl
-	${WATTYDIR}/dependencies/box2d/Box2D_v2.3.1
+	${WATTYDIR}/dependencies/box2d/include
 	${WATTYDIR}/dependencies/soloud/include
 	${WATTYDIR}/dependencies/json/include
 	${WATTYDIR}/dependencies/glm/include

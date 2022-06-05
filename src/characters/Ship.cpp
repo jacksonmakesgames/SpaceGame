@@ -17,8 +17,11 @@ Ship::Ship()
 	thrustFire->getAnimator()->play("Fire");
 
 	transform->addChild(thrustFire->transform);
+	thrusters.push_back(thrustFire->transform);
+	
 	fireRate_INV = 1.0f / fireRate;
 	nextFireTime = Timer::elapsed() + fireRate_INV;
+
 }
 
 Ship::~Ship()
@@ -43,7 +46,7 @@ void Ship::limitVelocity() {
 void Ship::fire(){
 	if (nextFireTime < Timer::elapsed()) {
 		nextFireTime = Timer::elapsed() + fireRate_INV;
-		Projectile* p = Instantiate::Create<Projectile>(transform->getPosition() + glm::vec2(0, .5f), {.3,.3},"Main Layer");
+		Projectile* p = Instantiate<Projectile>(transform->getPosition() + glm::vec2(0, .5f), {.3,.3},"Main Layer");
 		glm::vec3 dir = {0,1,0};
 		glm::quat q = glm::quat(glm::vec3(0,0,transform->getRotation()));
 		dir = q * dir;
